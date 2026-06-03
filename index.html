@@ -973,6 +973,83 @@ body { background:var(--dark); color:var(--cream); font-family:'Noto Sans TC',sa
 .btn-small { background: #2d4a6b !important; color: #ffffff !important; border-color: #1a2f4a !important; }
 .header-title { color: #0d1f33 !important; }
 .header-logo { color: var(--orange) !important; }
+
+/* ── Shot Position Counter (court overlay) ── */
+.court-shot-counter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 560px;
+  background: #1a2f4a;
+  border-radius: 12px;
+  padding: 10px 20px;
+  margin-bottom: 6px;
+  box-shadow: 0 3px 12px rgba(0,0,0,.18);
+  gap: 12px;
+}
+.csc-pos-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #E85A1B;
+  letter-spacing: 2px;
+  min-width: 80px;
+}
+.csc-counter {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+.csc-current {
+  font-family: 'Oswald', sans-serif;
+  font-size: 64px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1;
+}
+.csc-sep {
+  font-family: 'Oswald', sans-serif;
+  font-size: 44px;
+  color: #8aaac8;
+  font-weight: 400;
+}
+.csc-total {
+  font-family: 'Oswald', sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  color: #8aaac8;
+}
+.csc-unit {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 24px;
+  color: #8aaac8;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  font-weight: 700;
+}
+.csc-dots {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 100px;
+  justify-content: flex-end;
+}
+.csc-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2d4a6b;
+  border: 2px solid #4a6585;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.csc-dot.made   { background: #E85A1B; border-color: #FF6B2B; box-shadow: 0 0 6px rgba(232,90,27,.6); }
+.csc-dot.missed { background: #4a5a6a; border-color: #3a4a5a; }
+.csc-dot.next   { background: transparent; border: 3px solid #E85A1B; animation: cscPulse 1s ease-in-out infinite; }
+@keyframes cscPulse { 0%,100%{opacity:.6} 50%{opacity:1} }
 </style>
   <!-- Firebase SDK (optional cloud sync) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
@@ -1127,6 +1204,18 @@ body { background:var(--dark); color:var(--cream); font-family:'Noto Sans TC',sa
         </div>
         <div class="score-label">MADE · SHOTS</div>
         <div class="accuracy-display" id="accuracyDisplay">命中率 <span>—</span></div>
+      </div>
+
+      <!-- Court Shot Counter -->
+      <div class="court-shot-counter" id="courtShotCounter">
+        <div class="csc-pos-name" id="cscPosName">P1 左底角</div>
+        <div class="csc-counter">
+          <div class="csc-current" id="cscCurrent">1</div>
+          <div class="csc-sep">/</div>
+          <div class="csc-total" id="cscTotal">5</div>
+          <div class="csc-unit">球</div>
+        </div>
+        <div class="csc-dots" id="cscDots"></div>
       </div>
 
       <!-- Court -->
@@ -1784,6 +1873,24 @@ function updatePositionDisplay() {
       dot.classList.add('next');
     }
     bar.appendChild(dot);
+  }
+
+  // ── Court Shot Counter update ──────────────────────────────────────────
+  const cscPosName = document.getElementById('cscPosName');
+  const cscCurrent = document.getElementById('cscCurrent');
+  const cscDots    = document.getElementById('cscDots');
+  if (cscPosName && cscCurrent && cscDots) {
+    cscPosName.textContent = 'P' + pos + ' ' + POS_NAMES[pos];
+    cscCurrent.textContent = ps.length;  // 已投球數，從0開始
+    // Dots
+    cscDots.innerHTML = '';
+    for (let i = 0; i < SHOTS_PER_POS; i++) {
+      const d = document.createElement('div');
+      d.className = 'csc-dot';
+      if (i < ps.length)        d.classList.add(ps[i] ? 'made' : 'missed');
+      else if (i === ps.length) d.classList.add('next');
+      cscDots.appendChild(d);
+    }
   }
 
   const remaining = SHOTS_PER_POS - ps.length;
