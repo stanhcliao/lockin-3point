@@ -2289,7 +2289,7 @@ function addToLeaderboard(name, score, photo, elapsed) {
     month: `${_now.getFullYear()}-${String(_now.getMonth()+1).padStart(2,'0')}`
   });
   S.leaderboard.sort((a,b) => b.score - a.score || (a.elapsed ?? 9999) - (b.elapsed ?? 9999));
-  S.leaderboard=S.leaderboard.slice(0,50);
+  S.leaderboard=S.leaderboard.slice(0,500);
   saveLeaderboard();
   renderLeaderboardStrip();
 }
@@ -2639,7 +2639,8 @@ function updateLiveRank() {
 
   const currentScore   = getMade();
   const currentElapsed = S.maxTimer - S.timer;   // seconds used so far
-  const lb = S.leaderboard || [];
+  const _curMonth = getCurrentMonthStr();
+  const lb = (S.leaderboard || []).filter(e => (e.month || '').startsWith(_curMonth));
 
   // ── Tiebreaker helper ──────────────────────────────────────────────────────
   // Returns true if player DEFINITIVELY beats a leaderboard entry (score only).
